@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
+<head>
     <script src="scripts/jquery-3.1.1.js"></script>
-
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="scripts/d3.v3.min.js"></script>
     <title></title>
     <style>
         .line {
@@ -37,18 +36,11 @@
     </style>
 </head>
 <body>
-    <form id="form1" runat="server"></form>
     <div>
         <input id="audio_file" type="file" accept="audio/*" />
         <audio controls="controls" id="audioElement" />
     </div>
-    <%--<audio id="audioElement" src="shakuhachi.mp3"></audio>--%>
-    <div>
-        <button onclick="document.getElementById('audioElement').play()">Play &#9658;</button>
-        <button onclick="document.getElementById('audioElement').pause()">Pause ||</button>
-        <button onclick="document.getElementById('audioElement').volume+=0.1">Vol +</button>
-        <button onclick="document.getElementById('audioElement').volume-=0.1">Vol -</button>
-    </div>
+
 
 </body>
 
@@ -87,9 +79,6 @@
             // bind our analyser to the media element source.
             audioSrc.connect(analyser);
             audioSrc.connect(audioCtx.destination);
-
-            // var frequencyData = new Uint8Array(analyser.frequencyBinCount);
-
 
             var Series1 = [];
             var Series2 = [];
@@ -171,23 +160,7 @@
                 });
 
                 svg.selectAll("path").remove();
-                //svg.append("svg:path").attr("d", line(AllSeries[0].slice())).attr("stroke", d3.hsl(hueScale(0), 1, 0.5)).attr("fill","none");
-                //svg.append("svg:path").attr("d", line(AllSeries[6].slice())).attr("stroke", d3.hsl(hueScale(6), 1, 0.5)).attr("fill", "none");
-
-                //
-   //             svg.selectAll("path")
-   //  .data(AllSeries)
-   //.enter().append("path").attr("d", d3.svg.line()
-   //             .x(function (d, t) {
-   //                 return x(t);
-   //             })
-   //             .y(function (d) {
-   //                 return y(d);
-   //             }))
-   //                 .attr("stroke", "green")
-   //                 .attr("fill", "none");
-
-
+               
                 AllSeries.forEach(function (d,i) {
 
 
