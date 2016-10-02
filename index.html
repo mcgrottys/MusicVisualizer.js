@@ -1,1 +1,205 @@
-<h1>YEAH<h1>
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <script src="scripts/jquery-3.1.1.js"></script>
+
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <title></title>
+    <style>
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+        }
+
+        body {
+            font-family: monospace;
+            line-height: 1.5;
+            background-color: #130C0E;
+            padding: 20px;
+        }
+
+        button {
+            font-size: 14px;
+            background: #130C0E;
+            color: #7AC143;
+            border: none;
+            outline: none;
+            padding: 4px 8px;
+            letter-spacing: 1px;
+        }
+
+            button:hover {
+                background: #7AC143;
+                color: #130C0E;
+            }
+    </style>
+</head>
+<body>
+    <form id="form1" runat="server"></form>
+    <div>
+        <input id="audio_file" type="file" accept="audio/*" />
+        <audio controls="controls" id="audioElement" />
+    </div>
+    <%--<audio id="audioElement" src="shakuhachi.mp3"></audio>--%>
+    <div>
+        <button onclick="document.getElementById('audioElement').play()">Play &#9658;</button>
+        <button onclick="document.getElementById('audioElement').pause()">Pause ||</button>
+        <button onclick="document.getElementById('audioElement').volume+=0.1">Vol +</button>
+        <button onclick="document.getElementById('audioElement').volume-=0.1">Vol -</button>
+    </div>
+
+</body>
+
+<script>
+        audio_file.onchange = function () {
+            var files = this.files;
+            var file = URL.createObjectURL(files[0]);
+            audioElement.src = file;
+            //audioElement.play();
+        };
+
+        function GetFreqArray(index,arr)
+        {
+            var ret = [];
+
+            for(var z = 0; z< arr.length; z++)
+            {
+                ret.push(arr[z][index]);
+            }
+            return ret;
+        }
+        var FreqSize = 50;
+
+        var AllSeries = [];
+        for (i = 0; i < FreqSize; i++) {
+           AllSeries.push(new Array(150).fill(0));
+        }
+        (function () {
+            'use strict';
+
+            var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            var audioElement = document.getElementById('audioElement');
+            var audioSrc = audioCtx.createMediaElementSource(audioElement);
+            var analyser = audioCtx.createAnalyser();
+
+            // bind our analyser to the media element source.
+            audioSrc.connect(analyser);
+            audioSrc.connect(audioCtx.destination);
+
+            // var frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+
+            var Series1 = [];
+            var Series2 = [];
+
+
+            var frequencyData = new Uint8Array(FreqSize);
+            var truemax = 10;
+
+            var svgHeight = 800,
+                svgWidth = 1800;
+
+            var svg = d3.select('body').append('svg')
+                .attr({
+                    height: svgHeight,
+                    width: svgWidth
+                });
+
+            // continuously loop and update chart with frequency data.
+            function renderChart() {
+
+
+                requestAnimationFrame(renderChart);
+
+                analyser.getByteFrequencyData(frequencyData);
+
+                AllSeries.forEach(function (d, i) {
+
+                    d.shift();
+                    d.push(parseInt(frequencyData[i]));
+                });
+
+                //for (var i = 0; i < AllSeries.length; i++) {
+                //    if (AllSeries[i].length > 500) {
+                //        AllSeries[i].shift();
+                //    }
+                //}
+
+                //for (var q = 0; q < AllSeries.length; q++)
+                //{
+                //    AllSeries[q].push(parseInt(frequencyData[q]));
+                //}
+                var newArray = AllSeries.slice();
+                var max = d3.max(newArray, function (array) {
+                    return d3.max(array);
+                });
+
+                if (truemax < max)
+                {
+                    truemax = max;
+                }
+
+                var x = d3.scale.linear()
+                .domain([0, AllSeries[0].length])
+                .range([0, svgWidth]);
+                var y = d3.scale.linear()
+                .domain([0, truemax])
+                .range([svgHeight, 0]);
+
+
+
+
+                // scale things to fit
+                var radiusScale = d3.scale.linear()
+                    .domain([0, max])
+                    .range([0, svgHeight / 2 - 10]);
+
+              //  console.log(AllSeries.length);
+
+                var hueScale = d3.scale.linear()
+                    .domain([0, AllSeries.length])
+                    .range([0, 360]);
+                var line = d3.svg.line()
+                    .interpolate("basis")
+                .x(function (d, i) {
+                    return x(i);
+                })
+                .y(function (d) {
+                    return y(d);
+                });
+
+                svg.selectAll("path").remove();
+                //svg.append("svg:path").attr("d", line(AllSeries[0].slice())).attr("stroke", d3.hsl(hueScale(0), 1, 0.5)).attr("fill","none");
+                //svg.append("svg:path").attr("d", line(AllSeries[6].slice())).attr("stroke", d3.hsl(hueScale(6), 1, 0.5)).attr("fill", "none");
+
+                //
+   //             svg.selectAll("path")
+   //  .data(AllSeries)
+   //.enter().append("path").attr("d", d3.svg.line()
+   //             .x(function (d, t) {
+   //                 return x(t);
+   //             })
+   //             .y(function (d) {
+   //                 return y(d);
+   //             }))
+   //                 .attr("stroke", "green")
+   //                 .attr("fill", "none");
+
+
+                AllSeries.forEach(function (d,i) {
+
+
+                    svg.append("svg:path").attr("d", line(d)).attr("stroke", d3.hsl(hueScale(i), 1, 0.5))
+                    .attr("fill", "none");
+                });
+            }
+
+            renderChart();
+
+
+        }());
+
+</script>
+</html>
