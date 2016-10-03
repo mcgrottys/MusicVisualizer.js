@@ -13,6 +13,7 @@
         }
 
         body {
+            color: white;
             font-family: monospace;
             line-height: 1.5;
             background-color: #130C0E;
@@ -36,8 +37,13 @@
     </style>
 </head>
 <body>
+
     <div>
-        <input id="audio_file" type="file" accept="audio/*" />
+        Open Mp3 <input id="audio_file" type="file" accept="audio/*" />
+
+        Number of frequency lines <input type="range" id="FreqRange" min="1" max="200" value="5" />
+
+        Horizontal Value Range  <input type="range" id="CountRange" value="90" min="5" max="2000" />
         <audio controls="controls" id="audioElement" />
     </div>
 
@@ -52,6 +58,29 @@
             //audioElement.play();
         };
 
+        var FreqSize = 5;
+        var frequencyData = new Uint8Array(FreqSize);
+        var Count = 90;
+        var AllSeries = [];
+        for (i = 0; i < FreqSize; i++) {
+            AllSeries.push(new Array(Count).fill(0));
+        }
+
+        $('#FreqRange').change(function (d) {
+            FreqSize = $('#FreqRange').val();
+            AllSeries = [];
+            for (i = 0; i < FreqSize; i++) {
+                AllSeries.push(new Array(Count).fill(0));
+            }
+            frequencyData = new Uint8Array(FreqSize);
+            console.log(FreqSize);
+           })
+
+        $('#CountRange').change(function (d) {
+            Count = $('#CountRange').val();
+        })
+
+
         function GetFreqArray(index,arr)
         {
             var ret = [];
@@ -62,12 +91,7 @@
             }
             return ret;
         }
-        var FreqSize = 50;
 
-        var AllSeries = [];
-        for (i = 0; i < FreqSize; i++) {
-           AllSeries.push(new Array(150).fill(0));
-        }
         (function () {
             'use strict';
 
@@ -84,7 +108,6 @@
             var Series2 = [];
 
 
-            var frequencyData = new Uint8Array(FreqSize);
             var truemax = 10;
 
             var svgHeight = 800,
@@ -105,8 +128,13 @@
                 analyser.getByteFrequencyData(frequencyData);
 
                 AllSeries.forEach(function (d, i) {
-
-                    d.shift();
+                    if(d.length > Count) {
+                        d.shift();
+                        d.shift();
+                    }
+                    if (d.length > Count) {
+                        d.shift();
+                    }
                     d.push(parseInt(frequencyData[i]));
                 });
 
@@ -160,7 +188,7 @@
                 });
 
                 svg.selectAll("path").remove();
-               
+
                 AllSeries.forEach(function (d,i) {
 
 
