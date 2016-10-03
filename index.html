@@ -43,15 +43,15 @@
 <body>
 
     <div>
-        Open Mp3 <input id="audio_file" type="file" accept="audio/*" />
+        To play your own Mp3 <input id="audio_file" type="file" accept="audio/*" />
 
-        Number of frequency lines <input type="range" id="FreqRange" min="1" max="200" value="5" />
+        Number of frequency lines <input type="range" id="FreqRange" min="1" max="200" value="20" />
 
-        Horizontal Value Range  <input type="range" id="CountRange" value="90" min="5" max="2000" />
+        Horizontal Value Range  <input type="range" id="CountRange" value="100" min="5" max="1000" />
         <br />
         <a href="http://www.wethepopulace.com/">Listen to more tracks like this at http://www.wethepopulace.com/</a>
         <br />
-
+        To start the visualizer press play
         <audio controls="controls" id="audioElement" src="The One Live June 2016_278813151_soundcloud.mp3" />
 
     </div>
@@ -67,9 +67,9 @@
             //audioElement.play();
         };
 
-        var FreqSize = 5;
+        var FreqSize = FreqSize = $('#FreqRange').val();
         var frequencyData = new Uint8Array(FreqSize);
-        var Count = 90;
+        var Count = Count = $('#CountRange').val();
         var AllSeries = [];
         for (i = 0; i < FreqSize; i++) {
             AllSeries.push(new Array(Count).fill(0));
@@ -141,7 +141,7 @@
                         d.shift();
                         d.shift();
                     }
-                    if (d.length > Count) {
+                    else if (d.length >= Count) {
                         d.shift();
                     }
                     d.push(parseInt(frequencyData[i]));
