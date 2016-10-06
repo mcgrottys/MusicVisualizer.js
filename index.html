@@ -3,7 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <script src="scripts/jquery-3.1.1.js"></script>
-    <script src="scripts/d3.v3.min.js"></script>
+    <%--
+    <script src="scripts/d3.v3.min.js"></script>--%>
+    <script src="scripts/d3.js"></script>
     <title></title>
     <style>
         a {
@@ -12,7 +14,6 @@
 
         .line {
             fill: none;
-            stroke: steelblue;
             stroke-width: 1.5px;
         }
 
@@ -75,19 +76,6 @@
             AllSeries.push(new Array(Count).fill(0));
         }
 
-        $('#FreqRange').change(function (d) {
-            FreqSize = $('#FreqRange').val();
-            AllSeries = [];
-            for (i = 0; i < FreqSize; i++) {
-                AllSeries.push(new Array(Count).fill(0));
-            }
-            frequencyData = new Uint8Array(FreqSize);
-            console.log(FreqSize);
-           })
-
-        $('#CountRange').change(function (d) {
-            Count = $('#CountRange').val();
-        })
 
 
         function GetFreqArray(index,arr)
@@ -102,6 +90,40 @@
         }
 
         (function () {
+
+            $('#FreqRange').change(function (d) {
+                FreqSize = $('#FreqRange').val();
+                AllSeries = [];
+                for (i = 0; i < FreqSize; i++) {
+                    AllSeries.push(new Array(Count).fill(0));
+                }
+                frequencyData = new Uint8Array(FreqSize);
+
+                g.selectAll(".frequency").remove();
+
+                var Series = g.selectAll(".frequency")
+   .data(AllSeries)
+   .enter().append("g")
+   .attr("class", "frequency");
+
+
+
+                Series.append("path")
+                               .attr("class", "line")
+                               .attr("d", line)
+                     .style("stroke", function (d, i) { return d3.hsl(hueScale(i), 1, 0.5); });
+
+
+                hueScale = d3.scaleLinear()
+              .domain([0, AllSeries.length])
+              .range([0, 360]);
+            })
+
+            $('#CountRange').change(function (d) {
+                Count = $('#CountRange').val();
+            })
+
+
             'use strict';
 
             var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -113,82 +135,45 @@
             audioSrc.connect(analyser);
             audioSrc.connect(audioCtx.destination);
 
-            var Series1 = [];
-            var Series2 = [];
-
-
             var truemax = 10;
 
             var svgHeight = 800,
                 svgWidth = 1800;
 
-            var svg = d3.select('body').append('svg')
-                .attr({
-                    height: svgHeight,
-                    width: svgWidth
-                });
-
-            // continuously loop and update chart with frequency data.
-            function renderChart() {
+            // set the dimensions and margins of the graph
+            var margin = { top: 20, right: 150, bottom: 30, left: 50 },
+                width = 1800 - margin.left - margin.right,
+                height = 800 - margin.top - margin.bottom;
 
 
-                requestAnimationFrame(renderChart);
+            // append the svg obgect to the body of the page
+            // appends a 'group' element to 'svg'
+            // moves the 'group' element to the top left margin
+            var svg = d3.select("body").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform",
+                      "translate(" + margin.left + "," + margin.top + ")");
+            var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-                analyser.getByteFrequencyData(frequencyData);
-
-                AllSeries.forEach(function (d, i) {
-                    if(d.length > Count) {
-                        d.shift();
-                        d.shift();
-                    }
-                    else if (d.length >= Count) {
-                        d.shift();
-                    }
-                    d.push(parseInt(frequencyData[i]));
-                });
-
-                //for (var i = 0; i < AllSeries.length; i++) {
-                //    if (AllSeries[i].length > 500) {
-                //        AllSeries[i].shift();
-                //    }
-                //}
-
-                //for (var q = 0; q < AllSeries.length; q++)
-                //{
-                //    AllSeries[q].push(parseInt(frequencyData[q]));
-                //}
-                var newArray = AllSeries.slice();
-                var max = d3.max(newArray, function (array) {
-                    return d3.max(array);
-                });
-
-                if (truemax < max)
-                {
-                    truemax = max;
-                }
-
-                var x = d3.scale.linear()
-                .domain([0, AllSeries[0].length])
-                .range([0, svgWidth]);
-                var y = d3.scale.linear()
-                .domain([0, truemax])
-                .range([svgHeight, 0]);
+            var y = d3.scaleLinear()
+                .domain([0, 255])
+                .range([height, 0]);
 
 
 
+            var x = d3.scaleLinear()
+.domain([0, AllSeries[0].length])
+.range([0, width]);
 
-                // scale things to fit
-                var radiusScale = d3.scale.linear()
-                    .domain([0, max])
-                    .range([0, svgHeight / 2 - 10]);
+            var hueScale = d3.scaleLinear()
+               .domain([0, AllSeries.length])
+               .range([0, 360]);
 
-              //  console.log(AllSeries.length);
 
-                var hueScale = d3.scale.linear()
-                    .domain([0, AllSeries.length])
-                    .range([0, 360]);
-                var line = d3.svg.line()
-                    .interpolate("basis")
+            var vline = d3.line()
+                .curve(d3.curveCatmullRomOpen)
                 .x(function (d, i) {
                     return x(i);
                 })
@@ -196,15 +181,52 @@
                     return y(d);
                 });
 
-                svg.selectAll("path").remove();
+            var line = d3.line()
+                .curve(d3.curveBasis)
+                .x(function (d,i) { return x(i); })
+                .y(function (d) { return y(d); });
 
-                AllSeries.forEach(function (d,i) {
+            var Series = g.selectAll(".frequency")
+    .data(AllSeries)
+    .enter().append("g")
+    .attr("class", "frequency");
 
 
-                    svg.append("svg:path").attr("d", line(d)).attr("stroke", d3.hsl(hueScale(i), 1, 0.5))
-                    .attr("fill", "none");
+
+            Series.append("path")
+                           .attr("class", "line")
+                           .attr("d", line)
+                 .style("stroke", function (d, i) { return d3.hsl(hueScale(i), 1, 0.5); });
+
+            function renderChart() {
+
+                requestAnimationFrame(renderChart);
+
+                analyser.getByteFrequencyData(frequencyData);
+
+                AllSeries.forEach(function (d, i) {
+
+                    d.push(parseInt(frequencyData[i]));
                 });
+
+                x.domain([0, AllSeries[0].length]);
+
+                svg.selectAll("path")
+                      .attr("d", line)
+      .attr("transform", null);
+
+                AllSeries.forEach(function (d, i) {
+                    if (d.length > Count) {
+                        d.shift();
+                        d.shift();
+                    }
+                    else if (d.length >= Count) {
+                        d.shift();
+                    }
+                });
+
             }
+
 
             renderChart();
 
