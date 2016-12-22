@@ -1,0 +1,37 @@
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="WebForm2.aspx.cs" Inherits="WebPlayground.WebForm2" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <style>
+         body {
+            color: white;
+            font-family: monospace;
+            line-height: 1.5;
+            background-color: #130C0E;
+            padding: 20px;
+        }
+    </style>
+    <title></title>
+
+    <script src="scripts/d3.js"></script>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+     <div id="visual" style="width:100%;height:900px;"></div>
+    </div>
+    </form>
+</body>
+<script src="scripts/jquery-3.1.1.js"></script>
+    <script src="scripts/microphone.js"></script>
+     <script>
+      
+
+
+   
+
+        var sample = new MicrophoneSample();
+    </script>
+</html>
